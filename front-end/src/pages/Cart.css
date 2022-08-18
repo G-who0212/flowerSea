@@ -1,3 +1,19 @@
+.button{
+    font-family: 'Pretendard';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+
+    /* M_2_2 */
+
+    color: #8DA6FF;
+
+    border: 2px solid #8DA6FF;
+    border-radius: 11px;
+
+}
 .f{
     font-family: 'Pretendard';
 }
@@ -58,20 +74,20 @@
     height: 60px;
     line-height: 60px;
 }
-    .basketdiv .data .num .updown {
-        color: #0075ff;
-        font-size: 2em;
-        letter-spacing: -5px;
-    }
-    .basketdiv .check {
-        width: 10%;
-    }
+.basketdiv .data .num .updown {
+    color: #0075ff;
+    font-size: 2em;
+    letter-spacing: -5px;
+}
+.basketdiv .check {
+    width: 10%;
+}
 .basketdiv .check input[type=checkbox] {
     transform: scale(1.5);
 }
 .basketdiv .img{
-    width: 20%;
-    height: 15%;
+    width: 30%;
+    height: 30%;
 }
 .basketdiv .pname{
     width: 70%;

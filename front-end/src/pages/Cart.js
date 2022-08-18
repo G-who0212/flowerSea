@@ -3,198 +3,125 @@ import './Cart.css';
 import axios from 'axios';
 
 export default function Cart() {
-  let basket = {
-		totalCount: 0, 
-		totalPrice: 0,
-		//체크한 장바구니 상품 비우기
-		delCheckedItem: function(){
-			document.querySelectorAll("input[name=buy]:checked").forEach(function (item) {
-				item.parentElement.parentElement.parentElement.remove();
-			});
-			//AJAX 서버 업데이트 전송
-		
-			//전송 처리 결과가 성공이면
-			this.reCalc();
-			this.updateUI();
-		},
-		//장바구니 전체 비우기
-		delAllItem: function(){
-			document.querySelectorAll('.row.data').forEach(function (item) {
-				item.remove();
-			  });
-			  //AJAX 서버 업데이트 전송
+  // let basket = {
+	// 	totalCount: 0, 
+	// 	totalPrice: 0,
+	// 	//화면 업데이트
+	// 	updateUI: function () {
+	// 		document.querySelector('#sum_p_num').textContent = '상품갯수: ' + this.totalCount.formatNumber() + '개';
+	// 		document.querySelector('#sum_p_price').textContent = '합계금액: ' + this.totalPrice.formatNumber() + '원';
+	// 	},
+	// 	//개별 수량 변경
+	// 	// changePNum: function (pos) {
+	// 	//     var item = document.querySelector('input[name=p_num'+pos+']');
+	// 	//     var p_num = parseInt(item.getAttribute('value'));
+	// 	//     var newval = event.target.classList.contains('up') ? p_num+1 : event.target.classList.contains('down') ? p_num-1 : event.target.value;
 			
-			  //전송 처리 결과가 성공이면
-			  this.totalCount = 0;
-			  this.totalPrice = 0;
-			  this.reCalc();
-			  this.updateUI();
-		},
-		//재계산
-		reCalc: function(){
-			this.totalCount = 0;
-			this.totalPrice = 0;
-			document.querySelectorAll(".p_num").forEach(function (item) {
-				if(item.parentElement.parentElement.parentElement.previousElementSibling.firstElementChild.firstElementChild.checked == true){
-					var count = parseInt(item.getAttribute('value'));
-					this.totalCount += count;
-					var price = item.parentElement.parentElement.previousElementSibling.firstElementChild.getAttribute('value');
-					this.totalPrice += count * price;
-				}
-			}, this); // forEach 2번째 파라메터로 객체를 넘겨서 this 가 객체리터럴을 가리키도록 함. - thisArg
-		},
-		//화면 업데이트
-		updateUI: function () {
-			document.querySelector('#sum_p_num').textContent = '상품갯수: ' + this.totalCount.formatNumber() + '개';
-			document.querySelector('#sum_p_price').textContent = '합계금액: ' + this.totalPrice.formatNumber() + '원';
-		},
-		//개별 수량 변경
-		// changePNum: function (pos) {
-		//     var item = document.querySelector('input[name=p_num'+pos+']');
-		//     var p_num = parseInt(item.getAttribute('value'));
-		//     var newval = event.target.classList.contains('up') ? p_num+1 : event.target.classList.contains('down') ? p_num-1 : event.target.value;
-			
-		//     if (parseInt(newval) < 1 || parseInt(newval) > 99) { return false; }
+	// 	//     if (parseInt(newval) < 1 || parseInt(newval) > 99) { return false; }
 	
-		//     item.setAttribute('value', newval);
-		//     item.value = newval;
+	// 	//     item.setAttribute('value', newval);
+	// 	//     item.value = newval;
 	
-		//     var price = item.parentElement.parentElement.previousElementSibling.firstElementChild.getAttribute('value');
-		//     item.parentElement.parentElement.nextElementSibling.textContent = (newval * price).formatNumber()+"원";
-		//     //AJAX 업데이트 전송
+	// 	//     var price = item.parentElement.parentElement.previousElementSibling.firstElementChild.getAttribute('value');
+	// 	//     item.parentElement.parentElement.nextElementSibling.textContent = (newval * price).formatNumber()+"원";
+	// 	//     //AJAX 업데이트 전송
 	
-		//     //전송 처리 결과가 성공이면    
-		//     this.reCalc();
-		//     this.updateUI();
-		// },
-		checkItem: function () {
-			this.reCalc();
-			this.updateUI();
-		},
-		// delItem: function () {
-		//     event.target.parentElement.parentElement.parentElement.remove();
-		//     this.reCalc();
-		//     this.updateUI();
+	// 	//     //전송 처리 결과가 성공이면    
+	// 	//     this.reCalc();
+	// 	//     this.updateUI();
+	// 	// },
+	// 	checkItem: function () {
+	// 		this.reCalc();
+	// 		this.updateUI();
+	// 	},
+	// 	// delItem: function () {
+	// 	//     event.target.parentElement.parentElement.parentElement.remove();
+	// 	//     this.reCalc();
+	// 	//     this.updateUI();
+	// 	// }
+	// }
+	
+	// 	// 숫자 3자리 콤마찍기
+	// 	Number.prototype.formatNumber = function(){
+	// 		if(this==0) return 0;
+	// 		let regex = /(^[+-]?\d+)(\d{3})/;
+	// 		let nstr = (this + '');
+	// 		while (regex.test(nstr)) nstr = nstr.replace(regex, '$1' + ',' + '$2');
+	// 		return nstr;
+	// 	};
+  // const domain = "http://192.168.35.205:8000/";
+  const domain = "http://127.0.0.1:8000/";
+  var flowerid= "anything";
+
+  const getData = async () => {
+		// try {
+			const res = await axios.get(domain + "api/flowershop/");
+			let cart = res.data;
+			// console.log(cart);
+      let fsname = cart[32].shopName;
+      console.log(fsname)
+      return fsname;
+		// } catch (err) {
+		// 	console.log("error");
 		// }
-	}
-	
-		// 숫자 3자리 콤마찍기
-		Number.prototype.formatNumber = function(){
-			if(this==0) return 0;
-			let regex = /(^[+-]?\d+)(\d{3})/;
-			let nstr = (this + '');
-			while (regex.test(nstr)) nstr = nstr.replace(regex, '$1' + ',' + '$2');
-			return nstr;
-		};
+	};
+  
+  console.log(getData());
+	// const flowerid = getData();
+  
+
 	  return (
 		<form name="orderform" id="orderform" method="post" class="orderform" action="/Page" onsubmit="return false;">
 		
 				<input type="hidden" name="cmd" value="order" />
-				<div class="basketdiv" id="basket">
-					<div class="img flex-auto mr-0"><img src="./images/cart.png" width="60" /></div>
-					<h1 class="f text-3xl m-4 mb-8 flex-auto">장바구니</h1>
-					<h1 class="f text-2xl pl-4 m-4 border-b-4 ">홍익꽃집</h1>
-					<div class="row head ">
-						<div class="subdiv">
-							<div class="check">선택</div>
-							<div class="img">이미지</div>
-							<div class="pname">상품명</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketprice">한 송이 당 가격</div>
-							<div class="num">수량</div>
-							<div class="sum">합계</div>
-						</div>
-						<div class="subdiv">
-		
-							<div class="basketcmd">삭제</div>
-						</div>
-						<div class="split"></div>
-					</div>
+				<div class="border-b-2 border-solid mx-2" id="basket">
+          <div class="flex flex-row border-b-2 mb-16 mt-8">
+            <div class="ml-8"><img src="./images/icon_cart_color.png" width="60" /></div>
+            <div class="f text-3xl pt-6 ml-2">장바구니</div>
+          </div>
+          <div class="flex flex-row">
+					  <h1 class="f text-2xl px-4 m-4 border-b-4 ">홍익꽃집</h1>
+            <button class="f px-4 p-4 my-4 ml-2 rounded-l-lg bg-gray-300 ">배달</button>
+            <button class="f px-4 p-4 my-4 ml-2 rounded-r-lg bg-cyan-200">픽업</button>
+          </div>
 			
-					<div class="row data">
-						<div class="subdiv">
-							<div class="check"><input type="checkbox" name="buy" value="260" checked="" onclick="javascript:basket.checkItem();" />&nbsp;</div>
-							<div class="img"><img src="./images/rose.jpeg" width="60" /></div>
-							<div class="pname">
-								<span class="text-center justify-center">장미</span>
-							</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketprice"><input type="hidden" name="p_price" id="p_price1" class="p_price" value="5000" />5,000원</div>
-							<div class="num">
-								<div class="updown">
-									<input type="text" name="p_num1" id="p_num1" size="2" maxlength="4" class="p_num" value="5" onkeyup="javascript:basket.changePNum(1);" />
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-up up"></i></span>
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-down down"></i></span>
-								</div>
-							</div>
-							<div class="sum">25,000원</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketcmd"><a href="javascript:void(0)" class="abutton" onclick="javascript:basket.delItem();">삭제</a></div>
-						</div>
-					</div>
-					<div class="row data">
-						<div class="subdiv">
-							<div class="check"><input type="checkbox" name="buy" value="260" checked="" onclick="javascript:basket.checkItem();" />&nbsp;</div>
-							<div class="img"><img src="./images/tulip.jpeg" width="60" /></div>
-							<div class="pname">
-								<span class="text-center justify-center">튤립</span>
-							</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketprice"><input type="hidden" name="p_price" id="p_price1" class="p_price" value="7000" />7,000원</div>
-							<div class="num">
-								<div class="updown">
-									<input type="text" name="p_num1" id="p_num1" size="2" maxlength="4" class="p_num" value="3" onkeyup="javascript:basket.changePNum(1);" />
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-up up"></i></span>
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-down down"></i></span>
-								</div>
-							</div>
-							<div class="sum">21,000원</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketcmd"><a href="javascript:void(0)" class="abutton" onclick="javascript:basket.delItem();">삭제</a></div>
-						</div>
-					</div>
-					<div class="row data">
-						<div class="subdiv">
-							<div class="check"><input type="checkbox" name="buy" value="260" checked="" onclick="javascript:basket.checkItem();" />&nbsp;</div>
-							<div class="img"><img src="./images/mistflower.jpeg" width="60" /></div>
-							<div class="pname">
-								<span class="text-center justify-center">안개꽃</span>
-							</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketprice"><input type="hidden" name="p_price" id="p_price1" class="p_price" value="3000" />3,000원</div>
-							<div class="num">
-								<div class="updown">
-									<input type="text" name="p_num1" id="p_num1" size="2" maxlength="4" class="p_num" value="10" onkeyup="javascript:basket.changePNum(1);" />
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-up up"></i></span>
-									<span onclick="javascript:basket.changePNum(1);"><i class="fas fa-arrow-alt-circle-down down"></i></span>
-								</div>
-							</div>
-							<div class="sum">30,000원</div>
-						</div>
-						<div class="subdiv">
-							<div class="basketcmd"><a href="javascript:void(0)" class="abutton" onclick="javascript:basket.delItem();">삭제</a></div>
-						</div>
-					</div>
+          <div class="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
+            <div class="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+            <div class="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
+              <div class="font-bold text-base p-1">품목</div>
+              <div class="p-2">{flowerid}</div>
+              <div class="flex flex-row">
+                <div class="w-16">8000원</div>
+                <div class="w-4 ">/</div>
+                <div class="w-12 ">1송이</div>
+              </div>
+            </div>
+            <div class="flex flex-row-reverse w-full">
+              <div class="flex flex-col m-2 justify-center text-center">
+                <div class="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
+                  <button class="rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                  <div class="pt-2 mx-4">수량</div>
+                  <button class="rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                </div>
+                <div class="flex flex-row my-2 border-b-2 border-solid">
+                  <div class="m-2 text-neutral-400">8000원</div>
+                  <div class="m-2 text-neutral-400">X</div>
+                  <div class="m-2 text-neutral-400">2</div>
+                </div>
+                <div class="text-blue-300">16000원</div>
+              </div>
+            </div>
+					</div>	
 				</div>
-				
-				<div class="right-align basketrowcmd">
-					<a href="javascript:void(0)" class="abutton" onclick="javascript:basket.delCheckedItem();">선택상품삭제</a>
-					<a href="javascript:void(0)" class="abutton" onclick="javascript:basket.delAllItem();">장바구니비우기</a>
-				</div>
-		
-				<div class="bigtext right-align sumcount" id="sum_p_num">상품갯수: 3개</div>
-				<div class="bigtext right-align box blue summoney" id="sum_p_price">합계금액: 76,000원</div>
+        <div class="flex flex-row-reverse">
+          <div class="mr-2 mt-2 bigtext right-align box summoney">76,000원</div>
+          <div class="mr-2 mt-2 bigtext right-align box summoney">합계 : </div>
+        </div>
 		
 				<div id="goorder" class="">
 					<div class="clear"></div>
-					<div class="buttongroup center-align cmd">
-						<a href="javascript:void(0);">선택한 상품 주문</a>
+					<div class="buttongroup  center-align">
+						<button class="button w-40 px-8 py-4">주문하기</button>
 					</div>
 				</div>
 			</form>
