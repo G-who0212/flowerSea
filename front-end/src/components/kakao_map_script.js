@@ -12,7 +12,7 @@ export default function KakaoMapScript() {
 	var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
 
 	// 꽃집 위치 받아오기
-	const domain = "http://192.168.35.160:8080/";
+	const domain = "http://127.0.0.1:8000/";
 
 	const getData = async () => {
 		try {
