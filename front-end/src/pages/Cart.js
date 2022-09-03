@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import './Cart.css';
 import axios from 'axios';
 import { getCookieToken } from "../storage/Cookie";
+
 
 export default function Cart() {
   // const domain = "http://192.168.35.205:8000/";
@@ -10,8 +13,9 @@ export default function Cart() {
   const [carts, setCarts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const list =[];
+  // const refreshToken = getCookieToken();
 
-  const refreshToken = getCookieToken();
   const fetchCarts = async () => {
     try {
       // 요청이 시작 할 때에는 error 와 users 를 초기화하고
@@ -19,26 +23,107 @@ export default function Cart() {
       setCarts(null);
       // loading 상태를 true 로 바꿉니다.
       setLoading(true);
-      // const response = await axios.get(domain + "api/cart/", {
-      //   headers: {
-      //       Authorization: 'Bearer ' + sessionStorage.getItem(refreshToken)
-      //   }
-      // })
+
       const response = await axios.get(domain + "api/cart/");
       setCarts(response.data); // 데이터는 response.data 안에 들어있습니다.
+      console.log(response.data);
+
+      const flo = [];
+      flo[0] = response.data.mainFlower1_ID;
+      flo[1] = response.data.mainFlower2_ID;
+      flo[2] = response.data.mainFlower3_ID;
+      flo[3] = response.data.subFlower1_ID;
+      flo[4] = response.data.subFlower2_ID;
+      flo[5] = response.data.subFlower3_ID;
+      flo[6] = response.data.bunchOfFlowers1_ID
+      flo[7] = response.data.bunchOfFlowers2_ID
+      
+      // shop 정보 찾기 위한 과정
+      let shops = await axios.get(domain + 'api/flowershop/');
+      shops = JSON.stringify(shops.data);
+      const shop = JSON.parse(shops).filter(function(element){
+        return element.shopName === response.data.shopname;
+      }); 
+      console.log("shopis", shop[0].idx);
+
+      // for(let i=0; i<8; i++){
+      //   if(i<3 && flo[i]){ // mainflower 이면서 주문목록에 있으면
+      //     let main = await axios.get(domain + 'api/mainflower/' + shop[0].idx);
+      //     main = JSON.stringify(main.data);
+      //     const res = JSON.parse(main).filter(function(element){
+      //       // console.log(element);
+      //       return element.idx === flo[i];
+      //     }); 
+      //     console.log(res); 
+      //     list.push(res);
+      //   }
+      //   else if(i<6 && i>2 && flo[i]){ // subflower 이면서 주문목록에 있으면
+      //     let sub = await axios.get(domain + 'api/subflower/' + shop[0].idx);
+      //     sub = JSON.stringify(sub.data);
+      //     const res = JSON.parse(sub).filter(function(element){
+      //       // console.log(element);
+      //       return element.idx === flo[i];
+      //     }); 
+      //     console.log(res);
+      //     list.push(res);
+      //   }
+      //   else if(flo[i]){ // bunchofflower 이면서 주문목록에 있으면
+      //     let bunch = await axios.get(domain + 'api/bunchofflowers/' + shop[0].idx);
+      //     bunch = JSON.stringify(bunch.data);
+      //     const res = JSON.parse(bunch).filter(function(element){
+      //       // console.log(element);
+      //       return element.idx === flo[i];
+      //     }); 
+      //     console.log(res);
+      //     list.push(res);
+      //   }
+      // }
+
+      console.log("fetchCarts 완료!");
     } catch (e) {
       setError(e);
     }
     setLoading(false);
   };
-  const accountplus = (account) =>{
-    account -= 1;
-    alert(account)
-    return account;
-  };
+  function handledown(amount,e) {
+    e.preventDefault();
+    console.log("amount is ", amount);
+    console.log("수량 감소");
+    if(amount>0){
+      amount -= 1;
+      console.log(carts)
+    }
+    else{
+      alert("1개 이상 구매하셔야 해요~!")
+    }
+    return amount;
+  }
+  function handleup(e) {
+    e.preventDefault();
+    console.log("수량 증가");
+    if(carts.mainFlower1_amount>0){
+      carts.mainFlower1_amount += 1;
+      console.log(carts)
+    }
+    else{
+      alert("1개 이상 구매하셔야 해요~!")
+    }
+  }
+  
+  const onSubmit = async () => {
+		try {
+			const res = await axios.post(domain + "api/cart/", carts);
+      console.log("----------- submit ------------ ");
+      console.log(res.data);
+      // return navigate("/");
+		} catch (err) {
+			console.log(err)
+		}
+	}
+
   useEffect(() => {
+    console.log("fetchcart  전");
     fetchCarts();
-    console.log(carts);
   }, []);
 
   if (loading) return <div>로딩중..</div>; 
@@ -48,16 +133,18 @@ export default function Cart() {
   if (!carts) return <div>cart가 없어요~~~!</div>;
 
 	  return (
-		<form name="orderform" id="orderform" method="post" className="orderform" action="/Page" onsubmit="return false;">
+		<form name="orderform" id="orderform" className="orderform" onSubmit="return false;"> 
+    {/* // onsubmit="return false;" */}
 		
 				<input type="hidden" name="cmd" value="order" />
 				<div className="border-b-2 border-solid mx-2" id="basket">
           <div className="flex flex-row border-b-2 mb-16 mt-8">
             <div className="ml-8"><img src="./images/icon_cart_color.png" width="60" /></div>
             <div className="f text-3xl pt-6 ml-2">장바구니</div>
+            {/* <div className="f text-3xl pt-24 ml-2">장바구니</div> */}
           </div>
           <div className="flex flex-row">
-					  <h1 className="f text-2xl px-4 m-4 border-b-4 ">홍익꽃집</h1>
+					  <h1 className="f text-2xl px-4 m-4 border-b-4 ">{carts.shopname}</h1>
             <button className="f px-4 p-4 my-4 ml-2 rounded-l-lg bg-gray-300 ">배달</button>
             <button className="f px-4 p-4 my-4 ml-2 rounded-r-lg bg-cyan-200">픽업</button>
           </div>
@@ -70,7 +157,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower1_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.mainFlower1_price}</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -78,24 +165,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <a className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
-                        onClick={() =>
-                        // accountplus(carts.mainFlower1_amount)
-                        {
-                          carts.mainFlower1_amount -= 1;
-                          console.log(carts);
-                        }
-                        }>-</a>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                        onClick={function(e){
+                          e.preventDefault();
+                          carts.mainFlower1_amount--;
+                          console.log("눌렀니?");
+                          }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.mainFlower1_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
-                      onClick={ carts.mainFlower1_amount +1}>+</button>
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.mainFlower1_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.mainFlower1_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.mainFlower1_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.mainFlower1_price * carts.mainFlower1_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -109,7 +198,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower2_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.mainFlower2_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -117,23 +206,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                    <a className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
-                        onClick={() =>
-                        // accountplus(carts.mainFlower1_amount)
-                        {
-                          carts.mainFlower1_amount -= 1;
-                          console.log(carts);
-                        }
-                        }>-</a>
+                    <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                        onClick={function(e){
+                          e.preventDefault();
+                          carts.mainFlower2_amount--;
+                          console.log("눌렀니?");
+                          }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.mainFlower2_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.mainFlower2_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.mainFlower2_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.mainFlower2_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.mainFlower2_price * carts.mainFlower2_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -147,7 +239,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower3_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.mainFlower3_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -155,16 +247,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.mainFlower3_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.mainFlower3_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.mainFlower3_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.mainFlower3_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.mainFlower3_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.mainFlower3_price*carts.mainFlower3_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -178,7 +280,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower1_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.subFlower1_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -186,16 +288,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower1_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower1_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower1_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.subFlower1_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.subFlower1_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.subFlower1_price*carts.subFlower1_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -209,7 +321,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower2_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.subFlower2_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -217,16 +329,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower2_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower2_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower2_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.subFlower2_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.subFlower2_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.subFlower2_price*carts.subFlower2_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -240,7 +362,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower3_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.subFlower3_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -248,16 +370,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower3_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower3_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.subFlower3_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.subFlower3_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.subFlower3_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.subFlower3_price*carts.subFlower3_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -271,7 +403,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.bunchOfFlower1_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.bunchOfFlowers1_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -279,16 +411,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.bunchOfFlowers1_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.bunchOfFlowers1_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.bunchOfFlowers1_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.bunchOfFlowers1_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.bunchOfFlowers1_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.bunchOfFlowers1_price*carts.bunchOfFlowers1_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -302,7 +444,7 @@ export default function Cart() {
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.bunchOfFlower2_name}</div>
                   <div className="flex flex-row">
-                    <div className="w-16">8000원</div>
+                    <div className="w-16">{carts.bunchOfFlowers2_price}원</div>
                     <div className="w-4 ">/</div>
                     <div className="w-12 ">1송이</div>
                   </div>
@@ -310,16 +452,26 @@ export default function Cart() {
                 <div className="flex flex-row-reverse w-full">
                   <div className="flex flex-col m-2 justify-center text-center">
                     <div className="flex flex-row border-y-2 rounded-lg border-blue-300 border-solid drop-shadow-none">
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">-</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.bunchOfFlowers2_amount--;
+                        console.log("눌렀니?");
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.bunchOfFlowers2_amount}</div>
-                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl">+</button>
+                      <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
+                      onClick={function(e){
+                        e.preventDefault();
+                        carts.bunchOfFlowers2_amount++;
+                        console.log("눌렀니?");
+                        }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
-                      <div className="m-2 text-neutral-400">8000원</div>
+                      <div className="m-2 text-neutral-400">{carts.bunchOfFlowers2_price}원</div>
                       <div className="m-2 text-neutral-400">X</div>
                       <div className="m-2 text-neutral-400">{carts.bunchOfFlowers2_amount}</div>
                     </div>
-                    <div className="text-blue-300">16000원</div>
+                    <div className="text-blue-300">{carts.bunchOfFlowers2_price*carts.bunchOfFlowers2_amount}원</div>
                   </div>
                 </div>
               </div>
@@ -334,8 +486,11 @@ export default function Cart() {
 		
 				<div id="goorder" className="">
 					<div className="clear"></div>
-					<div className="buttongroup  center-align">
-						<button className="button w-40 px-8 py-4">주문하기</button>
+					<div className="buttongroup center-align">
+          <Link to='/'>
+						<button className="button w-40 px-8 py-4 border-2 border-blue-300 rounded-md"
+            type='submit' onClick={onSubmit}>주문하기</button>
+          </Link>
 					</div>
 				</div>
 			</form>
