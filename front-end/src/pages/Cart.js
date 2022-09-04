@@ -1,21 +1,29 @@
 import React, { useState, useEffect, useReducer } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import './Cart.css';
 import axios from 'axios';
-import { getCookieToken } from "../storage/Cookie";
 
 
 export default function Cart() {
   // const domain = "http://192.168.35.205:8000/";
   const domain = "http://127.0.0.1:8000/";
 
-  const [carts, setCarts] = useState(null);
-  var [main1, setMain1s] = useState(null);
-  
+  const [carts, setCarts] = useState(null);  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const flo = [];
+
+  const [li1, setLinks1] = useState(null);
+  const [li2, setLinks2] = useState(null);
+  const [li3, setLinks3] = useState(null);
+  const [li4, setLinks4] = useState(null);
+  const [li5, setLinks5] = useState(null);
+  const [li6, setLinks6] = useState(null);
+  const [li7, setLinks7] = useState(null);
+  const [li8, setLinks8] = useState(null);
+
+  var list = [];
   
   const fetchCarts = async () => {
     try {
@@ -27,17 +35,16 @@ export default function Cart() {
       
       const response = await axios.get(domain + "api/cart/");
       setCarts(response.data); // 데이터는 response.data 안에 들어있습니다.
-      setMain1s(response.data.mainFlower1_amount);
       console.log(response.data);
       
-      flo[0] = response.data.mainFlower1_amount;
-      flo[1] = response.data.mainFlower2_amount;
-      flo[2] = response.data.mainFlower3_amount;
-      flo[3] = response.data.subFlower1_amount;
-      flo[4] = response.data.subFlower2_amount;
-      flo[5] = response.data.subFlower3_amount;
-      flo[6] = response.data.bunchOfFlowers1_amount;
-      flo[7] = response.data.bunchOfFlowers2_amount;
+      flo[0] = response.data.mainFlower1_ID;
+      flo[1] = response.data.mainFlower2_ID;
+      flo[2] = response.data.mainFlower3_ID;
+      flo[3] = response.data.subFlower1_ID;
+      flo[4] = response.data.subFlower2_ID;
+      flo[5] = response.data.subFlower3_ID;
+      flo[6] = response.data.bunchOfFlowers1_ID;
+      flo[7] = response.data.bunchOfFlowers2_ID;
       
       // shop 정보 찾기 위한 과정
       let shops = await axios.get(domain + 'api/flowershop/');
@@ -46,7 +53,78 @@ export default function Cart() {
         return element.shopName === response.data.shopname;
       }); 
       console.log("shopis", shop[0].idx);
-      
+
+      // img 경로 저장을 위한 과정
+      for(let i=0; i<8; i++){
+        var result = "";
+        if(i<3 && flo[i]){ // mainflower 이면서 주문목록에 있으면
+          let main = await axios.get(domain + 'api/mainflower/' + shop[0].idx);
+          main = JSON.stringify(main.data);
+          const res = JSON.parse(main).filter(function(element){
+            return element.idx === flo[i];
+          }); 
+          switch(i){
+            case 0:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks1(result);
+            case 1:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks2(result);
+            case 2:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks3(result);
+            default:
+
+          }
+        }
+        else if(i<6 && i>2 && flo[i]){ // subflower 이면서 주문목록에 있으면
+          let sub = await axios.get(domain + 'api/subflower/' + shop[0].idx);
+          sub = JSON.stringify(sub.data);
+          const res = JSON.parse(sub).filter(function(element){
+            return element.idx === flo[i];
+          }); 
+          switch(i){
+            case 3:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks4(result);
+            case 4:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks5(result);
+            case 5:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks6(result);
+            default:
+
+          }
+        }
+        else if(flo[i]){ // bunchofflower 이면서 주문목록에 있으면
+          let bunch = await axios.get(domain + 'api/bunchofflowers/' + shop[0].idx);
+          bunch = JSON.stringify(bunch.data);
+          const res = JSON.parse(bunch).filter(function(element){
+            return element.idx === flo[i];
+          }); 
+          switch(i){
+            case 6:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks7(result);
+            case 7:
+              list[i] = (res[0].flowerPhoto);
+              result = list[i].substr(16);
+              setLinks8(result);
+            default:
+          }
+        }
+        else{
+          list.push("")
+        }
+      }
       console.log("fetchCarts 완료!");
     } catch (e) {
       setError(e);
@@ -54,16 +132,7 @@ export default function Cart() {
     setLoading(false);
   };
   const [number, dispatch] = useReducer(reducer, carts);
-  // async function getmain1() {
-  //   const response = await axios.get(domain + "api/cart/");
-  //   setMain1s(response.data.mainFlower1_amount);
-  //   console.log("main1 is", main1);
-  //   console.log("mainflower1 is", response.data.mainFlower1_amount);
-  // }
-  // const [number, dispatch] = useReducer(reducer, carts);
-  // const [number, dispatch] = useReducer(reducer, 0);
-  // const dispatch = useDispatch();
-  // const main1 = useSelector((state) => state.mainFlower1_amount);
+  
   function reducer(state, action) {
     switch (action.type) {
       case "INCREMENT1":
@@ -150,31 +219,20 @@ export default function Cart() {
         return carts.mainFlower1_amount;
     }
   }
-  const onIncrease = (e) => {
-    e.preventDefault();
-    // const response = await axios.get(domain + "api/cart/");
-    // const [ca, dispatch] = useReducer(reducer, response.data.mainFlower1_amount);
-    dispatch({ type: "INCREMENT"});
-  };
-  const onDecrease = (e) => {
-    e.preventDefault();
-    dispatch({ type: "DECREMENT" });
-  };
   
   const onSubmit = async () => {
 		try {
 			const res = await axios.post(domain + "api/cart/", carts);
       console.log("----------- submit ------------ ");
       console.log(res.data);
-      // return navigate("/");
 		} catch (err) {
 			console.log(err)
 		}
 	}
 
   useEffect(() => {
-    console.log("fetchcart  전");
     fetchCarts();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) return <div>로딩중..</div>; 
@@ -190,7 +248,7 @@ export default function Cart() {
 				<input type="hidden" name="cmd" value="order" />
 				<div className="border-b-2 border-solid mx-2" id="basket">
           <div className="flex flex-row border-b-2 mb-16 mt-8">
-            <div className="ml-8"><img src="./images/icon_cart_color.png" width="60" /></div>
+            <div className="ml-8"><img src="./images/icon_cart_color.png" alt="" width="60" /></div>
             <div className="f text-3xl pt-6 ml-2">장바구니</div>
             {/* <div className="f text-3xl pt-24 ml-2">장바구니</div> */}
           </div>
@@ -203,7 +261,7 @@ export default function Cart() {
           {
             carts.mainFlower1_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li1} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower1_name}</div>
@@ -249,7 +307,7 @@ export default function Cart() {
           {
             carts.mainFlower2_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li2} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower2_name}</div>
@@ -288,7 +346,7 @@ export default function Cart() {
           {
             carts.mainFlower3_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li3} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.mainFlower3_name}</div>
@@ -327,7 +385,7 @@ export default function Cart() {
           {
             carts.subFlower1_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li4} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower1_name}</div>
@@ -366,7 +424,7 @@ export default function Cart() {
           {
             carts.subFlower2_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li5} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower2_name}</div>
@@ -405,7 +463,7 @@ export default function Cart() {
           {
             carts.subFlower3_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li6} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.subFlower3_name}</div>
@@ -444,7 +502,7 @@ export default function Cart() {
           {
             carts.bunchOfFlowers1_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li7} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.bunchOfFlower1_name}</div>
@@ -483,7 +541,7 @@ export default function Cart() {
           {
             carts.bunchOfFlowers2_ID
             ? <div className="flex flex-row border-2 rounded-lg border-solid border-gray-100 drop-shadow mx-2 mb-8">
-                <div className="m-4 py-4"><img src="./images/rose.jpeg" width="200" /></div>
+                <div className="m-4 py-4"><img src={"http://"+li8} alt="" width="200" /></div>
                 <div className="flex flex-col text-center justify-center pl-12 pr-24 border-r-2 border-gray-300 my-2 drop-shadow-none">
                   <div className="font-bold text-base p-1">품목</div>
                   <div className="p-2">{carts.bunchOfFlower2_name}</div>
