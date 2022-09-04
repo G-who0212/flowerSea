@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import './Cart.css';
 import axios from 'axios';
 import { getCookieToken } from "../storage/Cookie";
@@ -11,11 +11,12 @@ export default function Cart() {
   const domain = "http://127.0.0.1:8000/";
 
   const [carts, setCarts] = useState(null);
+  var [main1, setMain1s] = useState(null);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const list =[];
-  // const refreshToken = getCookieToken();
-
+  const flo = [];
+  
   const fetchCarts = async () => {
     try {
       // 요청이 시작 할 때에는 error 와 users 를 초기화하고
@@ -23,20 +24,20 @@ export default function Cart() {
       setCarts(null);
       // loading 상태를 true 로 바꿉니다.
       setLoading(true);
-
+      
       const response = await axios.get(domain + "api/cart/");
       setCarts(response.data); // 데이터는 response.data 안에 들어있습니다.
+      setMain1s(response.data.mainFlower1_amount);
       console.log(response.data);
-
-      const flo = [];
-      flo[0] = response.data.mainFlower1_ID;
-      flo[1] = response.data.mainFlower2_ID;
-      flo[2] = response.data.mainFlower3_ID;
-      flo[3] = response.data.subFlower1_ID;
-      flo[4] = response.data.subFlower2_ID;
-      flo[5] = response.data.subFlower3_ID;
-      flo[6] = response.data.bunchOfFlowers1_ID
-      flo[7] = response.data.bunchOfFlowers2_ID
+      
+      flo[0] = response.data.mainFlower1_amount;
+      flo[1] = response.data.mainFlower2_amount;
+      flo[2] = response.data.mainFlower3_amount;
+      flo[3] = response.data.subFlower1_amount;
+      flo[4] = response.data.subFlower2_amount;
+      flo[5] = response.data.subFlower3_amount;
+      flo[6] = response.data.bunchOfFlowers1_amount;
+      flo[7] = response.data.bunchOfFlowers2_amount;
       
       // shop 정보 찾기 위한 과정
       let shops = await axios.get(domain + 'api/flowershop/');
@@ -45,70 +46,120 @@ export default function Cart() {
         return element.shopName === response.data.shopname;
       }); 
       console.log("shopis", shop[0].idx);
-
-      // for(let i=0; i<8; i++){
-      //   if(i<3 && flo[i]){ // mainflower 이면서 주문목록에 있으면
-      //     let main = await axios.get(domain + 'api/mainflower/' + shop[0].idx);
-      //     main = JSON.stringify(main.data);
-      //     const res = JSON.parse(main).filter(function(element){
-      //       // console.log(element);
-      //       return element.idx === flo[i];
-      //     }); 
-      //     console.log(res); 
-      //     list.push(res);
-      //   }
-      //   else if(i<6 && i>2 && flo[i]){ // subflower 이면서 주문목록에 있으면
-      //     let sub = await axios.get(domain + 'api/subflower/' + shop[0].idx);
-      //     sub = JSON.stringify(sub.data);
-      //     const res = JSON.parse(sub).filter(function(element){
-      //       // console.log(element);
-      //       return element.idx === flo[i];
-      //     }); 
-      //     console.log(res);
-      //     list.push(res);
-      //   }
-      //   else if(flo[i]){ // bunchofflower 이면서 주문목록에 있으면
-      //     let bunch = await axios.get(domain + 'api/bunchofflowers/' + shop[0].idx);
-      //     bunch = JSON.stringify(bunch.data);
-      //     const res = JSON.parse(bunch).filter(function(element){
-      //       // console.log(element);
-      //       return element.idx === flo[i];
-      //     }); 
-      //     console.log(res);
-      //     list.push(res);
-      //   }
-      // }
-
+      
       console.log("fetchCarts 완료!");
     } catch (e) {
       setError(e);
     }
     setLoading(false);
   };
-  function handledown(amount,e) {
-    e.preventDefault();
-    console.log("amount is ", amount);
-    console.log("수량 감소");
-    if(amount>0){
-      amount -= 1;
-      console.log(carts)
+  const [number, dispatch] = useReducer(reducer, carts);
+  // async function getmain1() {
+  //   const response = await axios.get(domain + "api/cart/");
+  //   setMain1s(response.data.mainFlower1_amount);
+  //   console.log("main1 is", main1);
+  //   console.log("mainflower1 is", response.data.mainFlower1_amount);
+  // }
+  // const [number, dispatch] = useReducer(reducer, carts);
+  // const [number, dispatch] = useReducer(reducer, 0);
+  // const dispatch = useDispatch();
+  // const main1 = useSelector((state) => state.mainFlower1_amount);
+  function reducer(state, action) {
+    switch (action.type) {
+      case "INCREMENT1":
+        carts.mainFlower1_amount++;
+        carts.totalPrice += carts.mainFlower1_price;
+        setCarts(carts);
+        return carts.mainFlower1_amount;
+      case "INCREMENT2":
+        carts.mainFlower2_amount++;
+        carts.totalPrice += carts.mainFlower2_price;
+        setCarts(carts);
+        return carts.mainFlower2_amount;
+      case "INCREMENT3":
+        carts.mainFlower3_amount++;
+        carts.totalPrice += carts.mainFlower3_price;
+        setCarts(carts);
+        return carts.mainFlower3_amount;
+      case "INCREMENT4":
+        carts.subFlower1_amount++;
+        carts.totalPrice += carts.subFlower1_price;
+        setCarts(carts);
+        return carts.subFlower1_amount;
+      case "INCREMENT5":
+        carts.subFlower2_amount++;
+        carts.totalPrice += carts.subFlower2_price;
+        setCarts(carts);
+        return carts.subFlower2_amount;
+      case "INCREMENT6":
+        carts.subFlower3_amount++;
+        carts.totalPrice += carts.subFlower3_price;
+        setCarts(carts);
+        return carts.subFlower3_amount;
+      case "INCREMENT7":
+        carts.bunchOfFlowers1_amount++;
+        carts.totalPrice += carts.bunchOfFlowers1_price;
+        setCarts(carts);
+        return carts.bunchOfFlowers1_amount;
+      case "INCREMENT8":
+        carts.bunchOfFlowers2_amount++;
+        carts.totalPrice += carts.bunchOfFlowers2_price;
+        setCarts(carts);
+        return carts.bunchOfFlowers2_amount;
+      case "DECREMENT1": // mainflower
+        carts.mainFlower1_amount--;
+        carts.totalPrice -= carts.mainFlower1_price;
+        setCarts(carts);
+        return carts.mainFlower1_amount;
+      case "DECREMENT2":
+        carts.mainFlower2_amount--;
+        carts.totalPrice -= carts.mainFlower2_price;
+        setCarts(carts);
+        return carts.mainFlower2_amount;
+      case "DECREMENT3":
+        carts.mainFlower3_amount--;
+        carts.totalPrice -= carts.mainFlower3_price;
+        setCarts(carts);
+        return carts.mainFlower3_amount;
+      case "DECREMENT4": // subflower
+        carts.subFlower1_amount--;
+        carts.totalPrice -= carts.subFlower1_price;
+        setCarts(carts);
+        return carts.subFlower1_amount;
+      case "DECREMENT5":
+        carts.subFlower2_amount--;
+        carts.totalPrice -= carts.subFlower2_price;
+        setCarts(carts);
+        return carts.subFlower2_amount;
+      case "DECREMENT6":
+        carts.subFlower3_amount--;
+        carts.totalPrice -= carts.subFlower3_price;
+        setCarts(carts);
+        return carts.subFlower3_amount;
+      case "DECREMENT7":
+        carts.bunchOfFlowers1_amount--;
+        carts.totalPrice -= carts.bunchOfFlowers1_price;
+        setCarts(carts);
+        return carts.bunchOfFlowers1_amount;
+      case "DECREMENT8":
+        carts.bunchOfFlowers2_amount--;
+        carts.totalPrice -= carts.bunchOfFlowers2_price;
+        setCarts(carts);
+        return carts.bunchOfFlowers2_amount;
+      default:
+        return carts.mainFlower1_amount;
     }
-    else{
-      alert("1개 이상 구매하셔야 해요~!")
-    }
-    return amount;
   }
-  function handleup(e) {
+  const onIncrease = (e) => {
     e.preventDefault();
-    console.log("수량 증가");
-    if(carts.mainFlower1_amount>0){
-      carts.mainFlower1_amount += 1;
-      console.log(carts)
-    }
-    else{
-      alert("1개 이상 구매하셔야 해요~!")
-    }
-  }
+    // const response = await axios.get(domain + "api/cart/");
+    // const [ca, dispatch] = useReducer(reducer, response.data.mainFlower1_amount);
+    dispatch({ type: "INCREMENT"});
+  };
+  const onDecrease = (e) => {
+    e.preventDefault();
+    dispatch({ type: "DECREMENT" });
+  };
   
   const onSubmit = async () => {
 		try {
@@ -168,16 +219,21 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                         onClick={function(e){
                           e.preventDefault();
-                          carts.mainFlower1_amount--;
-                          console.log("눌렀니?");
-                          }}>-</button>
+                          dispatch({ type: "DECREMENT1"});
+                        }}
+                        // onClick={onDecrease}
+                          >-</button>
+                      {/* <div className="pt-2 mx-4 grow">{carts.mainFlower1_amount}</div> */}
+                      {/* <div className="pt-2 mx-4 grow">{main1}</div> */}
+                      {/* <div className="pt-2 mx-4 grow">{number}</div> */}
                       <div className="pt-2 mx-4 grow">{carts.mainFlower1_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
-                      onClick={function(e){
-                        e.preventDefault();
-                        carts.mainFlower1_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        onClick={function(e){
+                          e.preventDefault();
+                          dispatch({ type: "INCREMENT1"});
+                        }}
+                      // onClick={onIncrease}                        
+                      >+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.mainFlower1_price}원</div>
@@ -209,16 +265,14 @@ export default function Cart() {
                     <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                         onClick={function(e){
                           e.preventDefault();
-                          carts.mainFlower2_amount--;
-                          console.log("눌렀니?");
-                          }}>-</button>
+                          dispatch({ type: "DECREMENT2"});
+                        }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.mainFlower2_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.mainFlower2_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT2"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.mainFlower2_price}원</div>
@@ -250,16 +304,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.mainFlower3_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT3"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.mainFlower3_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.mainFlower3_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT3"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.mainFlower3_price}원</div>
@@ -291,16 +343,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower1_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT4"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower1_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower1_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT4"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.subFlower1_price}원</div>
@@ -332,16 +382,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower2_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT5"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower2_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower2_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT5"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.subFlower2_price}원</div>
@@ -373,16 +421,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower3_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT6"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.subFlower3_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.subFlower3_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT6"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.subFlower3_price}원</div>
@@ -414,16 +460,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.bunchOfFlowers1_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT7"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.bunchOfFlowers1_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.bunchOfFlowers1_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT7"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.bunchOfFlowers1_price}원</div>
@@ -455,16 +499,14 @@ export default function Cart() {
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.bunchOfFlowers2_amount--;
-                        console.log("눌렀니?");
-                        }}>-</button>
+                        dispatch({ type: "DECREMENT8"});
+                      }}>-</button>
                       <div className="pt-2 mx-4 grow">{carts.bunchOfFlowers2_amount}</div>
                       <button className="grow-1 rounded-md border-2 border-solid bg-blue-300 border-blue-300 w-8 text-3xl"
                       onClick={function(e){
                         e.preventDefault();
-                        carts.bunchOfFlowers2_amount++;
-                        console.log("눌렀니?");
-                        }}>+</button>
+                        dispatch({ type: "INCREMENT8"});
+                      }}>+</button>
                     </div>
                     <div className="flex flex-row my-2 border-b-2 border-solid">
                       <div className="m-2 text-neutral-400">{carts.bunchOfFlowers2_price}원</div>
